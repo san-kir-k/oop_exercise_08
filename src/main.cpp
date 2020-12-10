@@ -35,6 +35,18 @@ void mainLoop(int max_cap) {
         std::stringstream ss(s);
         ss >> command;
         if (command == 3) {
+            if (buf.size() != 0) {
+                channel.push({EventCode::file,
+                            buf,
+                            "file_" + std::to_string(curr_file_count),
+                            std::shared_ptr<Handler>(new PrinterInFile)});
+                channel.push({EventCode::screen,
+                            buf,
+                            "",
+                            std::shared_ptr<Handler>(new PrinterOnScreen)});
+                curr_file_count++;
+                buf.clear();
+            }
             channel.push({EventCode::quit,
             buf,
             "",
