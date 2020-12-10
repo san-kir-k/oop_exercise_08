@@ -15,14 +15,17 @@
 class Handler {
     public:
         virtual void handle(const std::vector<std::shared_ptr<Figure>> fv, std::string filename) = 0;
+        virtual ~Handler() = default;
 };
 
-class PrinterOnScreen: Handler {
-    void handle(const std::vector<std::shared_ptr<Figure>> fv, std::string filename) override;
+class PrinterOnScreen: public Handler {
+    public:
+        void handle(const std::vector<std::shared_ptr<Figure>> fv, std::string filename) override;
 };
 
-class PrinterInFile: Handler {
-    void handle(const std::vector<std::shared_ptr<Figure>> fv, std::string filename) override;
+class PrinterInFile: public Handler {
+    public:
+        void handle(const std::vector<std::shared_ptr<Figure>> fv, std::string filename) override;
 };
 
 enum class EventCode {

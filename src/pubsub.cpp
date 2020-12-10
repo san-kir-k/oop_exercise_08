@@ -11,7 +11,7 @@ void PrinterInFile::handle(const std::vector<std::shared_ptr<Figure>> fv, std::s
     std::ofstream ofs;
     ofs.open(filename);
     for (auto& f: fv) {
-        f->print(ofs);
+        f->fprint(ofs);
         ofs << "\n";
     }
     ofs.close();
@@ -40,7 +40,7 @@ void HandleLoop(EventChannel& channel) {
     bool is_over = false;
     while(!is_over) {
         std::unique_lock<std::mutex> lock(channel.condmx);
-        channel.condv.wait(lock, [](const EventChannel& channel) { return !channel.is_empty(); });
+        channel.condv.wait(lock, [&channel]() { return !channel.is_empty(); });
         Event next_event = channel.back();
         channel.pop();
         switch (next_event.code) {

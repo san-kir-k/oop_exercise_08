@@ -20,16 +20,17 @@ void help() {
 
 void mainLoop(int max_cap) {
     std::vector<std::shared_ptr<Figure>> buf;
-    int command = 0, idx = 0, type = 0;
+    int command = 0, type = 0;
     std::string s;
     std::string filename;
     EventChannel channel;
     Event event;
     int curr_file_count = 1;
-    PrinterOnScreen screen_print();
-    PrinterInFile file_print();
-    std::thread routine(HandleLoop, channel);
-    while (std::cout << "Cmd: " && std::cin >> s) {
+    std::thread routine(HandleLoop, std::ref(channel));
+    while (true) {
+        if (!(std::cin >> s)) {
+            break;
+        }
         if (s.length() > 1) {
             std::cout << "Invalid command." << std::endl;
             continue;
@@ -43,43 +44,35 @@ void mainLoop(int max_cap) {
             NULL});
             break;
         }
-        switch (command) {
-            case 1:
-                if (buf.size() < max_cap) {
-                    std::cin >> type;
-                    switch (type) {
-                        case 1:
-                            buf.push_back(std::make_shared<Figure>(new Octagon(std::cin)));
-                            break;
-                        case 2:
-                            buf.push_back(std::make_shared<Figure>(new Square(std::cin)));
-                            break;
-                        case 3:
-                            buf.push_back(std::make_shared<Figure>(new Triangle(std::cin)));
-                            break;
-                        default:
-                            std::cout << "Invalid type." << std::endl;
-                            break;
-                    }
+        if (command == 1) {
+            if (buf.size() < max_cap) {
+                std::cin >> type;
+                if (type == 1) {
+                    buf.push_back(std::shared_ptr<Figure>(new Octagon(std::cin)));
+                } else if (type == 2) {
+                    buf.push_back(std::shared_ptr<Figure>(new Square(std::cin)));
+                } else if (type == 3) {
+                    buf.push_back(std::shared_ptr<Figure>(new Triangle(std::cin)));
                 } else {
-                    channel.push({EventCode::screen,
-                                buf,
-                                "",
-                                std::make_shared<Handler>(screen_print)});
-                    channel.push({EventCode::file,
-                                buf,
-                                "file_" + std::to_string(curr_file_count),
-                                std::make_shared<Handler>(screen_print)});
-                    curr_file_count++;
-                    buf.clear();
+                    std::cout << "Invalid type." << std::endl;
                 }
-                break;
-            case 2:
-                help();
-                break;
-            default:
-                std::cout << "Invalid command!" << std::endl; 
-                break;
+            }
+            if (buf.size() == max_cap) {
+                channel.push({EventCode::screen,
+                            buf,
+                            "",
+                            std::shared_ptr<Handler>(new PrinterOnScreen)});
+                channel.push({EventCode::file,
+                            buf,
+                            "file_" + std::to_string(curr_file_count),
+                            std::shared_ptr<Handler>(new PrinterInFile)});
+                curr_file_count++;
+                buf.clear();
+            }
+        } else if (command == 2) {
+            help();
+        } else {
+            std::cout << "Invalid command!" << std::endl; 
         }
     }
     routine.join();
@@ -88,7 +81,7 @@ void mainLoop(int max_cap) {
 int main(int argc, char* argv[]) {
     if (argc != 2) {
         std::cout << "Usage: ./lr8 <buffer_capacity>\n";
-        return;
+        return 0;
     }
     int max_cap = std::atoi(argv[1]);
     help();
