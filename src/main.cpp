@@ -27,10 +27,7 @@ void mainLoop(int max_cap) {
     Event event;
     int curr_file_count = 1;
     std::thread routine(HandleLoop, std::ref(channel));
-    while (true) {
-        if (!(std::cin >> s)) {
-            break;
-        }
+    while (std::cin >> s) {
         if (s.length() > 1) {
             std::cout << "Invalid command." << std::endl;
             continue;
@@ -58,14 +55,14 @@ void mainLoop(int max_cap) {
                 }
             }
             if (buf.size() == max_cap) {
-                channel.push({EventCode::screen,
-                            buf,
-                            "",
-                            std::shared_ptr<Handler>(new PrinterOnScreen)});
                 channel.push({EventCode::file,
                             buf,
                             "file_" + std::to_string(curr_file_count),
                             std::shared_ptr<Handler>(new PrinterInFile)});
+                channel.push({EventCode::screen,
+                            buf,
+                            "",
+                            std::shared_ptr<Handler>(new PrinterOnScreen)});
                 curr_file_count++;
                 buf.clear();
             }

@@ -51,9 +51,9 @@ class EventChannel {
         EventChannel() = default;
         ~EventChannel() = default;
         void push(Event e);
-        Event back() const;
+        Event front();
         void pop();
-        bool is_empty() const;
+        bool is_empty();
 };
 
 void HandleLoop(EventChannel& channel);

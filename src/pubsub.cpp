@@ -23,8 +23,9 @@ void EventChannel::push(Event e) {
     condv.notify_one();
 }
 
-Event EventChannel::back() const {
-    return buf.back();
+Event EventChannel::front() {
+    std::lock_guard<std::mutex> lock(mx);
+    return buf.front();
 }
 
 void EventChannel::pop() {
@@ -32,7 +33,8 @@ void EventChannel::pop() {
     buf.pop();
 }
 
-bool EventChannel::is_empty() const {
+bool EventChannel::is_empty() {
+    std::lock_guard<std::mutex> lock(mx);
     return buf.empty();
 }
 
@@ -41,7 +43,7 @@ void HandleLoop(EventChannel& channel) {
     while(!is_over) {
         std::unique_lock<std::mutex> lock(channel.condmx);
         channel.condv.wait(lock, [&channel]() { return !channel.is_empty(); });
-        Event next_event = channel.back();
+        Event next_event = channel.front();
         channel.pop();
         switch (next_event.code) {
             case EventCode::screen:
